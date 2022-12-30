@@ -33,7 +33,6 @@ services:
   flower:
     image: mher/flower
     networks:
-      - ${TRAEFIK_PUBLIC_NETWORK?Variable not set}
       - default
     env_file:
       - .env
