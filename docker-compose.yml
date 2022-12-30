@@ -90,19 +90,6 @@ services:
       - db
     env_file:
       - .env
-    deploy:
-      labels:
-        - traefik.enable=true
-        - traefik.docker.network=${TRAEFIK_PUBLIC_NETWORK?Variable not set}
-        - traefik.constraint-label=${TRAEFIK_PUBLIC_TAG?Variable not set}
-        - traefik.http.routers.${STACK_NAME?Variable not set}-pgadmin-http.rule=Host(`pgadmin.${DOMAIN?Variable not set}`)
-        - traefik.http.routers.${STACK_NAME?Variable not set}-pgadmin-http.entrypoints=http
-        - traefik.http.routers.${STACK_NAME?Variable not set}-pgadmin-http.middlewares=${STACK_NAME?Variable not set}-https-redirect
-        - traefik.http.routers.${STACK_NAME?Variable not set}-pgadmin-https.rule=Host(`pgadmin.${DOMAIN?Variable not set}`)
-        - traefik.http.routers.${STACK_NAME?Variable not set}-pgadmin-https.entrypoints=https
-        - traefik.http.routers.${STACK_NAME?Variable not set}-pgadmin-https.tls=true
-        - traefik.http.routers.${STACK_NAME?Variable not set}-pgadmin-https.tls.certresolver=le
-        - traefik.http.services.${STACK_NAME?Variable not set}-pgadmin.loadbalancer.server.port=5050
 
   queue:
     image: rabbitmq:3
@@ -123,19 +110,6 @@ services:
       # For the "Broker" tab to work in the flower UI, uncomment the following command argument,
       # and change the queue service's image as well
       # - "--broker_api=http://guest:guest@queue:15672/api//"
-    deploy:
-      labels:
-        - traefik.enable=true
-        - traefik.docker.network=${TRAEFIK_PUBLIC_NETWORK?Variable not set}
-        - traefik.constraint-label=${TRAEFIK_PUBLIC_TAG?Variable not set}
-        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-http.rule=Host(`flower.${DOMAIN?Variable not set}`)
-        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-http.entrypoints=http
-        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-http.middlewares=${STACK_NAME?Variable not set}-https-redirect
-        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-https.rule=Host(`flower.${DOMAIN?Variable not set}`)
-        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-https.entrypoints=https
-        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-https.tls=true
-        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-https.tls.certresolver=le
-        - traefik.http.services.${STACK_NAME?Variable not set}-flower.loadbalancer.server.port=5555
   
   backend:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
@@ -153,12 +127,6 @@ services:
       dockerfile: backend.dockerfile
       args:
         INSTALL_DEV: ${INSTALL_DEV-false}
-    deploy:
-      labels:
-        - traefik.enable=true
-        - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
-        - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.rule=PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`)
-        - traefik.http.services.${STACK_NAME?Variable not set}-backend.loadbalancer.server.port=80
   
   celeryworker:
     image: '${DOCKER_IMAGE_CELERYWORKER?Variable not set}:${TAG-latest}'
@@ -193,8 +161,3 @@ services:
 
 volumes:
   app-db-data:
-
-networks:
-  traefik-public:
-    # Allow setting it to false for testing
-    external: ${TRAEFIK_PUBLIC_NETWORK_IS_EXTERNAL-true}
